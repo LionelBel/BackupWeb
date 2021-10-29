@@ -22,7 +22,7 @@ date="$(date +%d-%m-%Y)"
 # Définition des variables
 source="/var/www/html/wordpress"
 name='basename $source'
-dest="/home/manager/backup" # Répertoire de backup local
+dest="/home/manager/sauvegarde" # Répertoire de sauvegarde local
 
 # Création du répertoire de backup local
 [! -d $dest] && mkdir -p $dest
@@ -30,16 +30,16 @@ dest="/home/manager/backup" # Répertoire de backup local
 echo " Répertoire à sauvegarder : $source "
 
 # Copie du répertoire WordPress
-echo " Copie du repertoire : $name, dans le répertoire backup local "
+echo " Copie du repertoire : $name, dans le répertoire sauvegarde local "
 cp -r $source $dest/$name-$date
-#tar czf $dest/$name-$date.tar.gz -C $source/..$hostname
+# tar czf $dest/$name-$date.tar.gz -C $source/..$hostname
 
 # Envoi de l'archive sur le serveur ftp
 # echo " Envoi des fichier sur $hostname "
-#lftp ftp://$user_ftp:$pass_ftp@$ftp_srv -e "mirror -e -R $dest /home/ftpuser/ftp_dir/wordpress/$date;quit"
+# lftp ftp://$user_ftp:$pass_ftp@$ftp_srv -e "mirror -e -R $dest /home/ftpuser/ftp_dir/wordpress/$date;quit"
 
 # Rotation des backup
-#lftp ftp://$user_ftp:$pass_ftp@$ftp_srv -e "rm -rf $rotation;quit"
+# lftp ftp://$user_ftp:$pass_ftp@$ftp_srv -e "rm -rf $rotation;quit"
 
 # Suppression du repertoire de backup local
 # rm -fr $dest
@@ -54,7 +54,7 @@ name_mysql="msql"
 
 # Backup de  la bases de donnée wordpress et création de l'archive
 echo " Sauvegarde de la base de donnée : wordpress "
-mysqldump --user=$mysql_user --databases wordpress > $dest_mysql/$name_mysql-$date.sql.gz
+mysqldump --user=$mysql_user --databases wordpress > $dest_mysql/$name_mysql-$date.sql
 
 # Envoi de l'archive sur le serveur ftp
 # echo " Envoi des fichier sur $hostname "
@@ -78,15 +78,32 @@ name_conf_apache="apacheconf"
 name_conf_mysql="mysqlconf"
 name_conf_php="phpconf"
 				#####################
-echo " Sauvegarde des fichiers de configuration Apache2 "
+echo " Copie des fichiers de configuration Apache2 "
 cp -r $source1 $dest/$name_conf_apache-$date
 				######################
-echo " Sauvegarde des fichiers de configuration MySQL "
+echo " Copie des fichiers de configuration MySQL "
 cp -r $source2 $dest/$name_conf_mysql-$date
 				######################
-echo " Sauvegarde des fichiers de configuration PHP "
+echo " Copie des fichiers de configuration PHP "
 cp -r $source3 $dest/$name_conf_php-$date
 
 #############################################
 ### Envoi des archives sur le serveur ftp ###
 #############################################
+# Définition des variables
+name_backup="sauvegarde_srvWeb"
+
+# Création de l'archive de sauvegarde complète
+echo " Création de l'archive"
+tar -czvf $dest/$name_backup-$date.tar.gz -C $dest/..$hostname
+
+# Envoi de l'archive sur le serveur ftp
+echo " Envoi des fichier sur $hostname " 
+lftp ftp://$user_ftp:$pass_ftp@$ftp_srv -e "mirror -e -R $dest /home/ftpuser/ftp_dir/sauvegarde/$date;quit"
+
+# Rotation des backup
+lftp ftp://$user_ftp:$pass_ftp@$ftp_srv -e "rm -rf $rotation;quit"
+
+#Suppression du repertoire de backup local
+rm -fr $dest
+echo " Sauvegarde répertoire WordPress terminée "
