@@ -13,7 +13,8 @@ user_ftp=ftpuser
 pass_ftp=pass
 
 ### Rotation des sauvegardes (2 jours) ###
-rotation='date +%d-%m-%Y --date='2 day ago''
+d=2
+rotation=$(date +%d-%m-%Y --date "$d days ago")
 
 ### Date du jour ###
 date="$(date +%d-%m-%Y)"
@@ -22,19 +23,19 @@ date="$(date +%d-%m-%Y)"
 ### Sauvegarde du répertoire WordPress ###
 ##########################################
 # Définition des variables
-source="/var/www/html/wordpress"
+source1="/var/www/html/wordpress"
 name='basename $source'
 dest="/home/manager/sauvegarde" # Répertoire de sauvegarde local
 
 # Création du répertoire de sauvegarde local
-[! -d $dest] && mkdir -p $dest
+mkdir -p $dest
 
-echo " Répertoire à sauvegarder : $source "
+echo " Répertoire à sauvegarder : $source1 "
 
 # Copie du répertoire WordPress
 echo " Copie du répertoire : $name, dans le répertoire sauvegarde local "
-cp -r $source $dest/$name-$date
-# tar czf $dest/$name-$date.tar.gz -C $source/..$hostname
+cp -r $source1 $dest/$name-$date
+# tar czvf $dest/$name-$date.tar.gz $dest
 
 # Envoi de l'archive sur le serveur ftp
 # echo " Envoi des fichier sur $hostname "
@@ -73,21 +74,21 @@ mysqldump --user=$mysql_user --databases wordpress > $dest/$name_mysql-$date.sql
 ### Sauvegarde des fichiers de configuration de Apache, MySQL et PHP ###
 ########################################################################
 # Définition des variables
-source1="/etc/apache2"
-source2="/etc/mysql"
-source3="/etc/php"
+source2="/etc/apache2"
+source3="/etc/mysql"
+source4="/etc/php"
 name_conf_apache="apacheconf"
 name_conf_mysql="mysqlconf"
 name_conf_php="phpconf"
 				#####################
 echo " Copie des fichiers de configuration Apache2 "
-cp -r $source1 $dest/$name_conf_apache-$date
+cp -r $source2 $dest/$name_conf_apache-$date
 				######################
 echo " Copie des fichiers de configuration MySQL "
-cp -r $source2 $dest/$name_conf_mysql-$date
+cp -r $source3 $dest/$name_conf_mysql-$date
 				######################
 echo " Copie des fichiers de configuration PHP "
-cp -r $source3 $dest/$name_conf_php-$date
+cp -r $source4 $dest/$name_conf_php-$date
 
 #############################################
 ### Envoi des archives sur le serveur ftp ###
@@ -97,11 +98,18 @@ name_backup="sauvegarde_srvWeb"
 
 # Création de l'archive de sauvegarde complète
 echo " Création de l'archive : $name_backup-$date "
-tar -czvf $dest/$name_backup-$date.tar.gz -C $dest/
+tar -czvf $dest/$name_backup-$date.tar.gz $dest/
+# Suppression des fichiers inclus dans l'archive de sauvegarde
+rm -rf $dest/$name_conf_apache-$date
+rm -rf $dest/$name_conf_mysql-$date
+rm -rf $dest/$name_conf_php-$date
+rm -rf $dest/$name_mysql-$date.sql
+rm -rf $dest/$name-$date
+
 
 # Envoi de l'archive sur le serveur ftp
-echo " Envoi des fichiers sur $hostname " 
-lftp ftp://$user_ftp:$pass_ftp@$ftp_srv -e "mirror -e -R $dest /home/ftpuser/ftp_dir/sauvegarde/$date;quit"
+echo " Envoi des fichiers sur $name_backup-$date.tar.gz " 
+lftp ftp://$user_ftp:$pass_ftp@$ftp_srv -e "mirror -R $dest/ /home/ftpuser/ftp_dir/sauvegarde/$date;quit"
 
 # Rotation des sauvegardes
 lftp ftp://$user_ftp:$pass_ftp@$ftp_srv -e "rm -rf $rotation;quit"
