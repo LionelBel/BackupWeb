@@ -2,7 +2,7 @@
 
 ## Script de sauvegarde du serveur web WordPress sous Linux Debian 10 sur serveur ftp ####
 
-### Pré-recquis : installation de lftp pour l'envoi des sauveagardes au serveur ftp
+### Pré-recquis : installation de lftp pour l'envoi des sauveagardes au serveur ftp ###
 # Installation de lftp
 # apt install lftp
 
@@ -18,6 +18,9 @@ rotation=$(date +%d-%m-%Y --date "$d days ago")
 
 ### Date du jour ###
 date="$(date +%d-%m-%Y)"
+
+### Emplacement des logs ###
+log="/home/manager/log_sauvegarde/log-$date"
 
 ##########################################
 ### Sauvegarde du répertoire WordPress ###
@@ -43,6 +46,8 @@ case $status in
 	1) echo "Erreur : copie du répertoire wordpress non effectuée" >> $log && exit;;
 esac
 
+## Autre Possibilité##
+# Création de l'archive
 # tar czvf $dest/$name-$date.tar.gz $dest
 
 # Envoi de l'archive sur le serveur ftp
@@ -74,6 +79,7 @@ case $status in
 	1) echo "Erreur : copie de la base de donnée wordpress non effectuée" >> $log && exit;;
 esac
 
+## Autre Possibilité ##
 # Envoi de l'archive sur le serveur ftp
 # echo " Envoi des fichiers sur $hostname "
 # lftp ftp://$user_ftp:$pass_ftp@$ftp_srv -e "mirror -e -R $dest_mysql /home/ftpuser/ftp_dir/mysql/$date;quit"
