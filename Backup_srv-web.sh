@@ -46,7 +46,7 @@ case $status in
 	1) echo "Erreur : copie du répertoire wordpress non effectuée" >> $log && exit;;
 esac
 
-## Autre Possibilité##
+## Autre Possibilité ##
 # Création de l'archive
 # tar czvf $dest/$name-$date.tar.gz $dest
 
